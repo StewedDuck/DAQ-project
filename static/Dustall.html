@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>All Dust & Temp Data</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    button { margin-right: .5em; }
+  </style>
+</head>
+<body>
+  <h1>All KidBright Data</h1>
+  <p>
+    <button onclick="toggle('dust')">Dust</button>
+    <button onclick="toggle('temp')">Temperature</button>
+    <button onclick="toggle('both')">Both</button>
+    &nbsp;|&nbsp;<a href="index.html">← Home</a>
+  </p>
+  <canvas id="chart"></canvas>
+
+  <script>
+    let chart, rawTimes=[], rawDust=[], rawTemp=[];
+    let mode = 'dust';
+
+    function toggle(m) {
+      mode = m;
+      update();
+    }
+
+    function update() {
+      let ds = [];
+      if (mode==='dust' || mode==='both') {
+        ds.push({
+          label: 'Dust Value (µg/m³)',
+          data: rawDust,
+          borderColor: 'rgb(255,99,132)',
+          fill:false
+        });
+      }
+      if (mode==='temp' || mode==='both') {
+        ds.push({
+          label: 'Temperature (°C)',
+          data: rawTemp,
+          borderColor: 'rgb(75,192,192)',
+          fill:false
+        });
+      }
+      chart.data.labels = rawTimes;
+      chart.data.datasets = ds;
+      chart.update();
+    }
+
+    window.onload = async function(){
+      // 1) Fetch primaryData
+      let resp = await fetch('http://127.0.0.1:8080/Pikha/v1/primaryData');
+      let arr = await resp.json();
+
+      // 2) sort by timestamp
+      arr.sort((a,b)=> new Date(a.ts) - new Date(b.ts));
+
+      // 3) extract arrays
+      rawTimes = arr.map(r=>r.ts);
+      rawDust  = arr.map(r=>r.dust_value);
+      rawTemp  = arr.map(r=>r.temp);
+
+      // 4) init Chart.js
+      let ctx = document.getElementById('chart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [] },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      // 5) first draw
+      update();
+    };
+  </script>
+</body>
+</html>

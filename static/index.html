@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pikha Dust & Temp — Home</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    ul { list-style: none; padding: 0; }
+    li { margin: .5em 0; }
+  </style>
+</head>
+<body>
+  <h1>Pikha Dust & Temperature Data</h1>
+  <p>Select a place type to see its trend, or view <a href="Dustall.html">all data together</a>:</p>
+  <ul id="place-list">
+    <!-- dynamically filled -->
+  </ul>
+
+  <script>
+    async function loadPlaceTypes() {
+      // 1) fetch the primaryData from your API
+      let resp = await fetch('http://127.0.0.1:8080/Pikha/v1/primaryData');
+      let data = await resp.json();
+
+      // 2) extract unique place_type values
+      let types = [...new Set(data.map(r=>r.place_type))];
+
+      // 3) render
+      let ul = document.getElementById('place-list');
+      types.forEach(pt => {
+        let li = document.createElement('li');
+        let a  = document.createElement('a');
+        a.href = `Dustshow.html?place_type=${encodeURIComponent(pt)}`;
+        a.textContent = pt.replace(/_/g,' ');
+        li.appendChild(a);
+        ul.appendChild(li);
+      });
+    }
+
+    window.onload = loadPlaceTypes;
+  </script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dust & Temp for Place</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    canvas { max-width: 800px; }
+  </style>
+</head>
+<body>
+  <h1 id="heading">Loading…</h1>
+  <p><a href="index.html">← Home</a></p>
+  <canvas id="chart"></canvas>
+
+  <script>
+    let chart, times=[], dusts=[], temps=[];
+
+    function getParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
+    async function loadAndPlot() {
+      let pt = getParam('place_type');
+      if (!pt) {
+        document.getElementById('heading').textContent = 'No place_type specified';
+        return;
+      }
+
+      // display nice heading
+      document.getElementById('heading').textContent =
+        'Place Type: ' + pt.replace(/_/g,' ');
+
+      // fetch the data
+      let resp = await fetch('http://127.0.0.1:8080/Pikha/v1/primaryData');
+      let arr  = await resp.json();
+
+      // filter by our place_type
+      arr = arr.filter(r=> r.place_type === pt);
+
+      // sort & extract
+      arr.sort((a,b)=> new Date(a.ts) - new Date(b.ts));
+      times = arr.map(r=>r.ts);
+      dusts = arr.map(r=>r.dust_value);
+      temps = arr.map(r=>r.temp);
+
+      // Chart.js
+      let ctx = document.getElementById('chart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: times,
+          datasets: [
+            {
+              label: 'Dust Value (µg/m³)',
+              data: dusts,
+              borderColor: 'rgb(255,99,132)',
+              fill:false
+            },
+            {
+              label: 'Temperature (°C)',
+              data: temps,
+              borderColor: 'rgb(75,192,192)',
+              fill:false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    window.onload = loadAndPlot;
+  </script>
+</body>
+</html>
