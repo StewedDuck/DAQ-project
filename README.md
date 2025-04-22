@@ -15,7 +15,7 @@ Python 3.5.2+
 To run the server, please execute the following from the root directory:
 
 ```
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 python app.py
 ```
 
