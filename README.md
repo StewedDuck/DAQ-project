@@ -16,38 +16,22 @@ To run the server, please execute the following from the root directory:
 
 ```
 pip3 install -r requirements.txt
-python3 -m swagger_server
+python app.py
 ```
 
-and open your browser to here:
+Then in your browser:
 
-```
-http://localhost:8080/rain-api/v2/ui/
-```
+Home → http://127.0.0.1:8080/
 
-Your Swagger definition lives here:
+All data → http://127.0.0.1:8080/Dustall.html
 
-```
-http://localhost:8080/rain-api/v2/swagger.json
-```
+Per‑type → http://127.0.0.1:8080/Dustshow.html?place_type=Closed_uncleaned_area
 
+Predictions → http://127.0.0.1:8080/predictions.html
+
+Swagger‑UI → http://127.0.0.1:8080/Pikha/v1/ui
 To launch the integration tests, use tox:
-```
-sudo pip install tox
-tox
-```
 
-## Running with Docker
-
-To run the server on a Docker container, please execute the following from the root directory:
-
-```bash
-# building the image
-docker build -t swagger_server .
-
-# starting up a container
-docker run -p 8080:8080 swagger_server
-```
 =======
 # Dust-n-Degree
 
