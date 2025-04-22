@@ -1,103 +1,53 @@
-import sys
-from flask import abort
-import pymysql
+import datetime, pymysql
 from dbutils.pooled_db import PooledDB
-from config import OPENAPI_STUB_DIR, DB_HOST, DB_USER, DB_PASSWD, DB_NAME
+from pymysql.cursors import DictCursor
+from config import DB_HOST, DB_USER, DB_PASSWD, DB_NAME
 
-sys.path.append(OPENAPI_STUB_DIR)
-from swagger_server import models
+# 1) Set up your MySQL pool
+pool = PooledDB(
+    creator=pymysql,
+    host=DB_HOST,
+    user=DB_USER,
+    password=DB_PASSWD,
+    database=DB_NAME,
+    cursorclass=DictCursor,
+    maxconnections=5,
+    blocking=True
+)
 
-pool = PooledDB(creator=pymysql,
-                host=DB_HOST,
-                user=DB_USER,
-                password=DB_PASSWD,
-                database=DB_NAME,
-                maxconnections=1,
-                blocking=True)
-
-def get_basins():
+def get_primary_data():
+    """Returns all KidBright readings as a list of dicts."""
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
-            SELECT basin_id, ename, area
-            FROM basin
+            SELECT ID, ts, lat, lon, temp, dust_value, place_type
+            FROM `Project_Pikha_D&D`
         """)
-        result = [models.Basin(*row) for row in cs.fetchall()]
-        return result
+        rows = cs.fetchall()
 
-def get_basin_details(basin_id):
+    # Convert datetime to ISO strings
+    for r in rows:
+        if isinstance(r.get("ts"), datetime.datetime):
+            r["ts"] = r["ts"].isoformat()
+    return rows
+
+def get_secondary_data():
+    """Returns all TMD readings, filling temp=None since no temp column."""
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute("""
-            SELECT basin_id, ename, area
-            FROM basin
-            WHERE basin_id=%s
-        """, [basin_id])
-        result = cs.fetchone()
-    if result:
-        basin_id, name, area = result
-        return models.Basin(*result)
-    else:
-        abort(404)
+            SELECT ID, ts, lat, lon, dust_value, place_type
+            FROM Project_secondary
+        """)
+        rows = cs.fetchall()
 
-def get_stations_in_basin(basin_id):
-    with pool.connection() as conn, conn.cursor() as cs:
-        cs.execute("""
-            SELECT station_id, basin_id, ename, lat, lon
-            FROM station WHERE basin_id=%s
-            """, [basin_id])
-        result = [models.Station(*row) for row in cs.fetchall()]
-        return result
+    for r in rows:
+        if isinstance(r.get("ts"), datetime.datetime):
+            r["ts"] = r["ts"].isoformat()
+        r["temp"] = None
+    return rows
 
-def get_station_details(station_id):
-    with pool.connection() as conn, conn.cursor() as cs:
-        cs.execute("""
-            SELECT station_id, basin_id, ename, lat, lon
-            FROM station
-            WHERE station_id=%s
-            """, [station_id])
-        result = cs.fetchone()
-    if result:
-        return models.Station(*result)
-    else:
-        abort(404)
-
-def get_basin_annual_rainfall(basin_id, year):
-    with pool.connection() as conn, conn.cursor() as cs:
-        cs.execute("""
-            SELECT SUM(daily_avg)
-            FROM (
-                SELECT r.year, r.month, r.day, AVG(r.amount) as daily_avg
-                FROM rainfall r
-                INNER JOIN station s ON r.station_id=s.station_id
-                INNER JOIN basin b ON b.basin_id=s.basin_id
-                WHERE b.basin_id=%s AND r.year=%s
-                GROUP BY r.year, r.month, r.day
-            ) daily_avg
-        """, [basin_id, year])
-        result = cs.fetchone()
-    if result and result[0]:
-        amount = round(result[0], 2)
-        return amount
-    else:
-        abort(404)
-
-def get_basin_monthly_average(basin_id):
-    with pool.connection() as conn, conn.cursor() as cs:
-        cs.execute("""
-            SELECT month, AVG(monthly_amount)
-            FROM (
-                SELECT SUM(r.amount) as monthly_amount, month
-                FROM rainfall r
-                INNER JOIN station s ON r.station_id=s.station_id
-                INNER JOIN basin b ON s.basin_id=b.basin_id
-                WHERE b.basin_id=%s
-                GROUP BY r.station_id, month, year
-            ) monthly
-            GROUP BY month
-            """, [basin_id])
-        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        result = [
-            models.MonthlyAverage(months[month-1], month, round(amount, 2))
-            for month, amount in cs.fetchall()
-        ]
-        return result
+def get_predictions():
+    """Stubbed trend‑based predictions."""
+    return {
+        "dustPrediction": 42.0,
+        "tempPrediction": 25.5
+    }

@@ -1,20 +1,17 @@
-FROM python:3-alpine
+FROM python:3.9-slim
 
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends default-libmysqlclient-dev gcc \
+ && rm -rf /var/lib/apt/lists/*
 
-COPY . /usr/src/app
+WORKDIR /app
 
-RUN apk update \
-    && apk add --virtual build-deps gcc python3-dev musl-dev \
-    && apk add --no-cache mariadb-dev
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip3 install --no-cache-dir -r requirements.txt
-
-RUN apk del build-deps
+COPY app.py controller.py config.py ./
+COPY openapi/ ./openapi/
+COPY stub/ ./stub/
 
 EXPOSE 8080
-
-ENTRYPOINT ["python3"]
-
-CMD ["app.py"]
+CMD ["python", "app.py"]

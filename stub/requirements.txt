@@ -1,0 +1,15 @@
+# stub/requirements.txt
+connexion[swagger-ui]>=2.6.0,<3.0.0
+python_dateutil==2.6.0
+setuptools>=21.0.0
+swagger-ui-bundle>=0.0.2
+
+# HTTP CORS support
+Flask-Cors>=3.0.10
+
+# MySQL driver + connection pooling
+PyMySQL>=1.0
+DBUtils>=3.0
+
+# Crypto for MySQL auth plugins
+cryptography>=3.4.8

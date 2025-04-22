@@ -1,0 +1,86 @@
+openapi: 3.0.0
+info:
+  title: Pikha Dust & Temp API
+  description: >
+    Historical dust & temperature readings from KidBright (primary) and TMD (secondary),
+    plus simple trend‑based predictions.
+  version: 1.0.0
+
+servers:
+  - url: http://127.0.0.1:8080/Pikha/v1
+
+paths:
+  /primaryData:
+    get:
+      summary: All KidBright (primary) readings
+      operationId: controller.get_primary_data
+      responses:
+        '200':
+          description: List of primary data records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataRecord'
+
+  /secondaryData:
+    get:
+      summary: All TMD (secondary) readings
+      operationId: controller.get_secondary_data
+      responses:
+        '200':
+          description: List of secondary data records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataRecord'
+
+  /predictions:
+    get:
+      summary: Dust & temperature predictions
+      operationId: controller.get_predictions
+      responses:
+        '200':
+          description: Simple trend‑based predictions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prediction'
+
+components:
+  schemas:
+    DataRecord:
+      type: object
+      properties:
+        ID:
+          type: integer
+        ts:
+          type: string
+          format: date-time
+        lat:
+          type: number
+        lon:
+          type: number
+        temp:
+          type: number
+        dust_value:
+          type: number
+        place_type:
+          type: string
+          enum:
+            - Closed_uncleaned_area
+            - Closed_cleaned_area
+            - Open_good_environment
+
+    Prediction:
+      type: object
+      properties:
+        dustPrediction:
+          type: number
+          description: Projected next dust_value
+        tempPrediction:
+          type: number
+          description: Projected next temp

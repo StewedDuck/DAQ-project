@@ -1,0 +1,201 @@
+openapi: 3.0.0
+info:
+  description: |
+    Historical dust & temperature readings from KidBright (primary) and TMD (secondary), plus simple trend‑based predictions.
+  title: Pikha Dust & Temp API
+  version: 1.0.0
+servers:
+- url: http://127.0.0.1:8080/Pikha/v1
+paths:
+  /predictions:
+    get:
+      operationId: controller_get_predictions
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prediction'
+          description: Simple trend‑based predictions
+      summary: Dust & temperature predictions
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /primaryData:
+    get:
+      operationId: controller_get_primary_data
+      parameters:
+      - explode: true
+        in: query
+        name: place_type
+        required: false
+        schema:
+          enum:
+          - Closed_uncleaned_area
+          - Closed_cleaned_area
+          - Open_good_environment
+          type: string
+        style: form
+      - description: ISO8601 start timestamp (inclusive)
+        explode: true
+        in: query
+        name: start
+        required: false
+        schema:
+          format: date-time
+          type: string
+        style: form
+      - description: ISO8601 end timestamp (inclusive)
+        explode: true
+        in: query
+        name: end
+        required: false
+        schema:
+          format: date-time
+          type: string
+        style: form
+      - description: Max number of records to return
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 100
+          type: integer
+        style: form
+      - description: Number of records to skip
+        explode: true
+        in: query
+        name: offset
+        required: false
+        schema:
+          default: 0
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/DataRecord'
+                type: array
+          description: List of primary data records
+      summary: "All KidBright (primary) readings, with optional filtering & pagination"
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /secondaryData:
+    get:
+      operationId: controller_get_secondary_data
+      parameters:
+      - explode: true
+        in: query
+        name: place_type
+        required: false
+        schema:
+          enum:
+          - Closed_uncleaned_area
+          - Closed_cleaned_area
+          - Open_good_environment
+          type: string
+        style: form
+      - description: ISO8601 start timestamp (inclusive)
+        explode: true
+        in: query
+        name: start
+        required: false
+        schema:
+          format: date-time
+          type: string
+        style: form
+      - description: ISO8601 end timestamp (inclusive)
+        explode: true
+        in: query
+        name: end
+        required: false
+        schema:
+          format: date-time
+          type: string
+        style: form
+      - description: Max number of records to return
+        explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 100
+          type: integer
+        style: form
+      - description: Number of records to skip
+        explode: true
+        in: query
+        name: offset
+        required: false
+        schema:
+          default: 0
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/DataRecord'
+                type: array
+          description: List of secondary data records
+      summary: "All TMD (secondary) readings, with optional filtering & pagination"
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+components:
+  schemas:
+    DataRecord:
+      example:
+        temp: 5.962133916683182
+        place_type: Closed_uncleaned_area
+        lon: 1.4658129805029452
+        ID: 0
+        dust_value: 5.637376656633329
+        lat: 6.027456183070403
+        ts: 2000-01-23T04:56:07.000+00:00
+      properties:
+        ID:
+          title: ID
+          type: integer
+        ts:
+          format: date-time
+          title: ts
+          type: string
+        lat:
+          title: lat
+          type: number
+        lon:
+          title: lon
+          type: number
+        temp:
+          nullable: true
+          title: temp
+          type: number
+        dust_value:
+          title: dust_value
+          type: number
+        place_type:
+          enum:
+          - Closed_uncleaned_area
+          - Closed_cleaned_area
+          - Open_good_environment
+          title: place_type
+          type: string
+      title: DataRecord
+      type: object
+    Prediction:
+      example:
+        tempPrediction: 6.027456183070403
+        dustPrediction: 0.8008281904610115
+      properties:
+        dustPrediction:
+          description: Projected next dust_value
+          title: dustPrediction
+          type: number
+        tempPrediction:
+          description: Projected next temp
+          title: tempPrediction
+          type: number
+      title: Prediction
+      type: object
