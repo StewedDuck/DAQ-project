@@ -24,4 +24,4 @@
 | Name                        | Member ID        | Photo                                  |
 | --------------------------- | ---------------- | -------------------------------------- |
 | Picha Wiwattanawongsa       | 6610545430       |  |
-| Jongchana Khachatrokphai    | 6610545774       | <img src="./images/Screenshot_20250422_220710_NisitKU.jpg" width="200"> |
+| Jongchana Khachatrokphai    | 6610545774       | ![image](https://github.com/user-attachments/assets/cda65da2-8bde-418b-94d4-63647a960691) |
