@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Next‑Step Forecast</title>
+  <style> body { font-family: sans-serif; margin: 2em } </style>
+</head>
+<body>
+  <h1>Next‑Step Forecast</h1>
+  <p>Click the button below to fetch our simple trend‑based predictions:</p>
+  <button id="btn">Get Predictions</button>
+  <ul id="out" style="list-style:none; padding:0; font-size:1.2em; margin-top:1em"></ul>
+
+  <script>
+    document.getElementById("btn").onclick = async function() {
+      let resp = await fetch("http://127.0.0.1:8080/Pikha/v1/predictions");
+      let js   = await resp.json();
+      let ul = document.getElementById("out");
+      ul.innerHTML = `
+        <li>🍃 <strong>Dust:</strong> ${js.dustPrediction.toFixed(2)} µg/m³</li>
+        <li>🌡️ <strong>Temp:</strong> ${js.tempPrediction.toFixed(2)} °C</li>
+      `;
+    };
+  </script>
+</body>
+</html>
